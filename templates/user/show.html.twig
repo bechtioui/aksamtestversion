@@ -78,10 +78,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<th>Identifiant</th>
-					<td>{{ user.id }}</td>
-				</tr>
+
 
 				<tr>
 					<th>Username</th>
@@ -148,16 +145,22 @@
 					<td>
 						{% for role in user.roles %}
 
-							{% if role == "ROLE_CHEF" %}
-								Chef d'equipe<br>
-							{% elseif role == "ROLE_ADMIN" %}
-								Directeur Generale<br>
-							{% elseif role == "ROLE_ADMIN" %}
-								Tous<br>
+							{% if role == "ROLE_ADMIN"  %}
+								Tous
+								<br>
+							{% elseif role == "ROLE_TEAM" %}
+								Chef d'equipe
+								<br>
+
+							{% elseif role == "ROLE_AFFECT" %}
+								Affecter Prospects<br>
+							{% elseif role == "ROLE_ADD_PROS" %}
+								Ajouter Prospect<br>
+							{% elseif role == "ROLE_EDIT_PROS" %}
+								Traiter Prospect<br>
 
 							{% elseif role == "ROLE_STAND" %}
-								Gestion Standard
-								<br>
+								Gestion Standard<br>
 							{% elseif role == "ROLE_ADD_STAND" %}
 								Ajouter Standard<br>
 							{% elseif role == "ROLE_EDIT_STAND" %}
@@ -183,67 +186,59 @@
 								Ajouter Client<br>
 							{% elseif role == "ROLE_EDIT_CLIENT" %}
 								Edite Client<br>
-
-							{% elseif role == "ROLE_PROS" %}
-								Gestion Prospects<br>
-							{% elseif role == "ROLE_ADD_PROS" %}
-								Ajouter Prospect<br>
-							{% elseif role == "ROLE_EDIT_PROS" %}
-								Edite Prospect<br>
 							{% endif %}
 						{% endfor %}
 					</td>
-
-				</tr>
-				<tr>
-					<th>Parmis l'équipe
-					</th>
-					<td>
-						{% if user.teams is not empty %}
-							{{ user.teams }}
-						{% else %}
-							Aucun
-						{% endif %}
-					</td>
-				</tr>
-				<tr>
-					<th>Produits Implanté
-					</th>
-					<td>
-						{% for product in user.products %}
-							{{  product  }}
-							<br>
-						{% endfor %}
-					</td>
-				</tr>
-				<tr>
-					<th>Date de creation
-					</th>
-					<td>
-						{% if user.creatAt is not empty %}
-							{{ user.creatAt |  date('d/m/Y, H:i:s')}}
-						{% else %}
-							Aucun
-						{% endif %}
-					</td>
-				</tr>
-				<tr>
-					<th>Date d'accès
-					</th>
-
-
-					<td>
-
-
-						{% for acces in user.acces %}
-							{{acces.accessDate ? acces.accessDate|date('d/m/Y H:i:s') : 'pas acces' }}
-							<br>
-						{% endfor %}
-
-
-					</td>
 				</tr>
 			</tbody>
-		</table>
-	</div>
-</div></div>{% endblock %}
+		</td>
+	</tr>
+	<tr>
+		<th>Parmis l'équipe
+		</th>
+		<td>
+			{% for team in user.teams %}
+				{{  team  }}
+				<br>
+			{% endfor %}
+
+		</td>
+	</tr>
+	<tr>
+		<th>Produits Implanté
+		</th>
+		<td>
+			{% for product in user.products %}
+				{{  product  }}
+				<br>
+			{% endfor %}
+		</td>
+	</tr>
+	<tr>
+		<th>Date de creation
+		</th>
+		<td>
+			{% if user.creatAt is not empty %}
+				{{ user.creatAt |  date('d/m/Y, H:i:s')}}
+			{% else %}
+				Aucun
+			{% endif %}
+		</td>
+	</tr>
+	<tr>
+		<th>Date d'accès
+		</th>
+
+
+		<td>
+
+
+			{% for acces in user.acces %}
+				{{acces.accessDate ? acces.accessDate|date('d/m/Y H:i:s') : 'pas acces' }}
+				<br>
+			{% endfor %}
+
+
+		</td>
+	</tr>
+</tbody></table></div></div></div>{% endblock %}

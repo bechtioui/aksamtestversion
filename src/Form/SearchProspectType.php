@@ -50,23 +50,27 @@ class SearchProspectType extends AbstractType
 
 
         $user = $this->security->getUser();
-        if ($user  instanceof User) {
-            $team = $user->getTeams(); // Assurez-vous que cette méthode existe et retourne l'équipe de l'utilisateur
 
-            if (in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true) || in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-                $comrclsForTeam = $this->userRepository->findAll();
-            } else if (in_array('ROLE_TEAM', $user->getRoles(), true) && $team) {
-                $comrclsForTeam = $team === null ? [] :  $this->userRepository->findComrclByteamOrderedByAscName($team);
+        if ($user instanceof User) {
+            $teams = $user->getTeams();
+            $team = $teams->first(); // Sélectionner la première équipe de la collection
+
+            if ($team instanceof Team) {
+                // Trouver les commerciaux pour cette équipe
+                $comrclsForTeam = $this->userRepository->findComrclByteamOrderedByAscName($team);
+
+                // Transformer la liste des commerciaux en choix pour le formulaire
+                $comrclChoices = [];
+                foreach ($comrclsForTeam as $comrcl) {
+                    $comrclChoices[$comrcl->getUsername()] = $comrcl->getUsername();
+                }
             } else {
-                // cmrcl peut voir seulement les non traités attachés à lui
-                $comrclsForTeam =  [];
+                // Gérer le cas où aucune équipe n'est trouvée ou traiter autrement
+                $comrclChoices = [];
             }
-
-            // Transformez la liste de commerciaux en un tableau utilisable pour les choix dans le formulaire
+        } else {
+            // Gérer le cas où l'utilisateur n'est pas connecté ou autre scénario
             $comrclChoices = [];
-            foreach ($comrclsForTeam as $comrcl) {
-                $comrclChoices[$comrcl->getUsername()] = $comrcl->getUsername();
-            }
         }
 
         // $userRepository = $this->entityManager->getRepository(User::class);

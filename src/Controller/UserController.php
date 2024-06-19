@@ -76,6 +76,9 @@ class UserController extends AbstractController
             foreach ($user->getProducts() as $product) {
                 $product->addUser($user);
             }
+            foreach ($user->getTeams() as $team) {
+                $team->addUser($user);
+            }
 
             // $user->setStatus(1);
             //  $data = $form->getData();

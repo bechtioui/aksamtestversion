@@ -4,10 +4,12 @@ namespace App\Repository;
 
 use DateTime;
 use App\Entity\Team;
+use App\Entity\User;
 use App\Search\SearchTeam;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\Security\Core\Security;
 use Knp\Component\Pager\Pagination\PaginationInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
@@ -25,10 +27,12 @@ class TeamRepository extends ServiceEntityRepository
      * @var PaginatorInterface
      */
     private $paginator;
-    public function __construct(ManagerRegistry $registry, PaginatorInterface $paginator)
+    private $user;
+    public function __construct(ManagerRegistry $registry, PaginatorInterface $paginator, Security $user)
     {
         parent::__construct($registry, Team::class);
         $this->paginator = $paginator;
+        $this->user = $user;
     }
 
     public function add(Team $entity, bool $flush = false): void
@@ -123,6 +127,8 @@ class TeamRepository extends ServiceEntityRepository
 
     public function findAllTeamByAscNameQueryBuilder(): QueryBuilder
     {
+        //$team = $this->user->getUser()->getRoles();
+
         return $this->createQueryBuilder('c')
             ->orderBy('c.name', 'ASC');
     }
@@ -141,6 +147,16 @@ class TeamRepository extends ServiceEntityRepository
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
+    }
+
+    //return les teams attache a moi sur select dynamqiue
+    public function findTeamsByUser(User $user): QueryBuilder
+    {
+        return $this->createQueryBuilder('t')
+            ->innerJoin('t.users', 'u')
+            ->where('u.id = :userId')
+            ->setParameter('userId', $user->getId())
+            ->orderBy('t.name', 'ASC');
     }
 
     public function findAllOrderByAscNameQuiryBuilder(): QueryBuilder
@@ -184,4 +200,35 @@ class TeamRepository extends ServiceEntityRepository
 
 
     // }
+    public function findByCmrclTeamApi(): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->select('t.id AS teamId, t.name AS teamName, u.id as comrclId, u.username AS comrcl')
+            ->leftJoin('u.teams', 't')
+            ->orderBy('t.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $teamsWithComrcls = [];
+        foreach ($qb as $result) {
+            if (!isset($teamsWithComrcls[$result['teamId']])) {
+                $teamsWithComrcls[$result['teamId']] = [
+                    'teamName' => $result['teamName'],
+                    'comrcls' => []
+                ];
+            }
+            $teamsWithComrcls[$result['teamId']]['comrcls'][] = $result['comrcl'];
+        }
+
+        $formattedResult = [];
+        foreach ($teamsWithComrcls as $teamId => $team) {
+            $formattedResult[] = [
+                'teamId' => $teamId,
+                'teamName' => $team['teamName'],
+                'comrcls' => implode(', ', $team['comrcls'])
+            ];
+        }
+
+        return $formattedResult;
+    }
 }

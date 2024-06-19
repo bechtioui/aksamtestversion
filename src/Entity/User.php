@@ -94,10 +94,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "smallint")]
     private $status = true;
 
-    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: "users", cascade: ["persist"])]
-    #[ORM\JoinColumn(nullable: true)]
 
-    private $teams;
 
     #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: "users", cascade: ["persist"])]
 
@@ -135,6 +132,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $IsConnect = false;
 
+    #[ORM\ManyToMany(targetEntity: Team::class, inversedBy: 'users', cascade: ["persist"])]
+    private Collection $teams;
+
+
 
 
     public function __construct()
@@ -145,6 +146,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->prospections = new ArrayCollection();
         $this->clients = new ArrayCollection();
         $this->acces = new ArrayCollection();
+        $this->teams = new ArrayCollection();
     }
 
     /**
@@ -348,17 +350,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getTeams(): ?Team
-    {
-        return $this->teams;
-    }
 
-    public function setTeams(?Team $teams): self
-    {
-        $this->teams = $teams;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Product>
@@ -578,6 +570,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsConnect(bool $IsConnect): self
     {
         $this->IsConnect = $IsConnect;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Team>
+     */
+    public function getTeams(): Collection
+    {
+        return $this->teams;
+    }
+
+    public function addTeam(Team $team): self
+    {
+        if (!$this->teams->contains($team)) {
+            $this->teams->add($team);
+        }
+
+        return $this;
+    }
+
+    public function removeTeam(Team $team): static
+    {
+        $this->teams->removeElement($team);
 
         return $this;
     }

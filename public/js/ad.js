@@ -258,38 +258,84 @@ $('document').ready(function () {
 
 //select dynamique
 
+$(document).ready(function () {
+	handleTeamChange('#prospect_team', '#prospect_comrcl');
+	handleTeamChange('#prospect_affect_team', '#prospect_affect_comrcl');
+	function handleTeamChange(teamId, comercialId) {
+		const prospectTeam = $(teamId);
+		const prospectCommercial = $(comercialId);
+		if (prospectTeam.length && prospectCommercial.length) {
+			if (!prospectTeam.val().length) {
+				prospectCommercial.parent().hide();
 
-document.addEventListener('DOMContentLoaded', function () {
-	const teamSelectEl = document.getElementById('prospect_team');
-	teamSelectEl.addEventListener('change', function (e) {
-		// console.log('okok');
-		const formEl = teamSelectEl.closest('form');
-		// console.log("formEl: " + formEl);
+			} else {
+				loadCommercials();
+			}
+			function loadCommercials() {
+				const currentValue = prospectTeam.val();
+				const commercialvalue = prospectCommercial.val();
 
-		fetch(formEl.action, {
-			method: formEl.method,
-			body: new FormData(formEl)
-		})
-			.then(response => response.text())
-			.then(html => {
+				if (!currentValue.length) {
+					return;
+				}
+				$.ajax({
+					url: "/team/teams-api", success: function (result) {
+						prospectCommercial.empty()
+						const options = result.find(function (item) {
+							return item.id == currentValue;
+						});
+						prospectCommercial.append(new Option());
 
-
-				const parser = new DOMParser();
-				const doc = parser.parseFromString(html, 'text/html');
-				const newComrclFormFieldEl = doc.getElementById('prospect_comrcl');
-
-
-				newComrclFormFieldEl.addEventListener('change', function (e) {
-					e.target.classList.remove('is-invalid');
+						options?.commercials?.map(function (item) {
+							prospectCommercial.append(new Option(item.username, item.id));
+						})
+						prospectCommercial.val(commercialvalue).change();
+						prospectCommercial.parent().show();
+						console.log('RESULT', options);
+					}
 				});
-				document.getElementById('prospect_comrcl').replaceWith(newComrclFormFieldEl);
-
+			}
+			prospectTeam.change(function () {
+				loadCommercials();
 			})
-			.catch(function (err) {
-				console.warn('Something went wrong.', err);
-			});
-	});
-});
+			console.log('HEre im 2')
+
+		}
+	}
+})
+
+// document.addEventListener('DOMContentLoaded', function () {
+// 	const teamSelectEl = document.getElementById('prospect_team');
+// 	teamSelectEl.addEventListener('change', function (e) {
+// 		console.log('okok');
+// 		const formEl = teamSelectEl.closest('form');
+// 		console.log("formEl: " + formEl);
+
+// 		fetch(formEl.action, {
+// 			method: formEl.method,
+// 			body: new FormData(formEl)
+// 		})
+// 			.then(response => response.text())
+// 			.then(html => {
+
+// 				const parser = new DOMParser();
+// 				const doc = parser.parseFromString(html, 'text/html');
+// 				const newComrclFormFieldEl = doc.getElementById('prospect_comrcl');
+
+// 				console.log('formData', newComrclFormFieldEl);
+
+
+// 				newComrclFormFieldEl.addEventListener('change', function (e) {
+// 					e.target.classList.remove('is-invalid');
+// 				});
+// 				document.getElementById('prospect_comrcl').replaceWith(newComrclFormFieldEl);
+
+// 			})
+// 			.catch(function (err) {
+// 				console.warn('Something went wrong.', err);
+// 			});
+// 	});
+// });
 
 
 
@@ -539,11 +585,11 @@ $(document).ready(function () {
 // 	audio.play();
 // }
 
-$.ajax({
-	url: 'http://localhost:92/api/prospects',
-	success: function (data) {
-		// Process prospect data
-		playNotificationSound();
-	}
-});
+// $.ajax({
+// 	url: 'http://localhost:92/api/prospects',
+// 	success: function (data) {
+// 		// Process prospect data
+// 		playNotificationSound();
+// 	}
+// });
 

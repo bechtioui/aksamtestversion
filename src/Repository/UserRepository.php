@@ -133,17 +133,61 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         );
     }
 
+
+
     public function findComrclByteamOrderedByAscName(Team $team): array
     {
         return $this->createQueryBuilder('u')
-            ->where('u.teams = :team')
-            // ->leftJoin('u.teams', 't')
-            // ->andWhere('t = :team')
+            ->leftJoin('u.teams', 't')
+            ->andWhere('t = :team')
             ->setParameter('team', $team)
             ->orderBy('u.username', 'ASC')
             ->getQuery()
             ->getResult();
     }
+
+    public function findByCmrclTeamApi(): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->select('t.id AS teamId, t.name AS teamName, u.id as comrclId, u.username AS comrcl')
+            ->leftJoin('u.teams', 't')
+            ->orderBy('t.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $qb;
+        // Concaténer les commerciaux par équipe
+        $teamsWithComrcls = [];
+        foreach ($qb as $result) {
+            if (!isset($teamsWithComrcls[$result['teamId']])) {
+                $teamsWithComrcls[$result['teamId']] = [
+                    'teamName' => $result['teamName'],
+                    'comrcls' => []
+                ];
+            }
+            $teamsWithComrcls[$result['teamId']]['comrcls'][] = $result['comrcl'];
+        }
+
+        // Formater le résultat final
+        $formattedResult = [];
+        foreach ($teamsWithComrcls as $team) {
+            $formattedResult[] = [
+                'teamName' => $team['teamName'],
+                'comrcls' => implode(', ', $team['comrcls'])
+            ];
+        }
+
+        return $formattedResult;
+    }
+
+    // Example of how to use it:
+    // $userTeams = $user->getTeams(); // Assuming $user is an instance of User
+    // foreach ($userTeams as $team) {
+    //     $usersInTeam = $userRepository->findComrclByteamOrderedByAscName($team);
+    //     // Process $usersInTeam as needed
+    // }
+
+
 
 
     public function findByComrclMonth(int $year, int $month): array

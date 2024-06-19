@@ -31,8 +31,7 @@ class Team
     private $description;
 
 
-    #[ORM\OneToMany(targetEntity: User::class, mappedBy: "teams", cascade: ["persist"])]
-    private $users;
+
 
     #[ORM\OneToMany(targetEntity: Prospect::class, mappedBy: "team")]
 
@@ -42,13 +41,15 @@ class Team
     #[ORM\OneToMany(mappedBy: 'team', targetEntity: Client::class)]
     private Collection $clients;
 
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'teams', cascade: ['persist'])]
+    private Collection $users;
 
     public function __construct()
     {
 
-        $this->users = new ArrayCollection();
         $this->prospects = new ArrayCollection();
         $this->clients = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -86,35 +87,8 @@ class Team
         return $this->name ?? '';
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getUsers(): Collection
-    {
-        return $this->users;
-    }
 
-    public function addUser(User $user): self
-    {
-        if (!$this->users->contains($user)) {
-            $this->users[] = $user;
-            $user->setTeams($this);
-        }
 
-        return $this;
-    }
-
-    public function removeUser(User $user): self
-    {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getTeams() === $this) {
-                $user->setTeams(null);
-            }
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Prospect>
@@ -171,6 +145,33 @@ class Team
             if ($client->getTeam() === $this) {
                 $client->setTeam(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->addTeam($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): static
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeTeam($this);
         }
 
         return $this;

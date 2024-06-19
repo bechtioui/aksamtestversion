@@ -244,84 +244,9 @@ class ProspectType extends AbstractType
                     // ]
                 ]
             )
+            ->add('team')
+            ->add('comrcl');
 
-            ->add('team', EntityType::class, [
-                'class' => Team::class,
-                'choice_label' => 'name',
-                'required' => false,
-                'placeholder' => '--Choose a Team--',
-                'query_builder' => fn (TeamRepository $teamRepository) =>
-                $teamRepository->findAllTeamByAscNameQueryBuilder()
-            ]);
-
-
-
-        $formModifier = function (FormInterface $form, Team $team = null) {
-
-            $comrcl = $team === null ? [] : $this->userRepository->findComrclByteamOrderedByAscName($team);
-            //dd(team); //null
-            //dd( $comrcl); //[]
-            $form->add('comrcl', EntityType::class, [
-                'class' => User::class,
-                'required' => false,
-                'choice_label' => 'username',
-                // 'disabled' => $team === null,
-                'placeholder' => '--Choose a Comercial--',
-                'choices' => $comrcl
-            ]);
-        };
-
-
-        $builder->addEventListener(
-            FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) use ($formModifier, $options) {
-                $data = $event->getData();
-                //dd($data);
-                $formModifier($event->getForm(), $data->getTeam());
-                if ($options['editing'] === false) {
-
-                    $formModifier($event->getForm(), $data->getTeam());
-                }
-            }
-        );
-
-
-
-        // $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
-        //     $form = $event->getForm();
-        //     $data = $event->getData();
-
-        //     if (!isset($data['typeProspect'])) {
-        //         return;
-        //     }
-
-        //     $typeProspect = $data['typeProspect'];
-
-        //     if ($typeProspect === '2') { // Si le type de prospect est professionnel
-        //         $form->add('activites',  Type\ChoiceType::class, [
-        //             'label' => 'Activites ',
-        //             'placeholder' => '--Merci de sélectionner-- ',
-        //             'choices' => [
-        //                 'Prof auto' => 8
-        //             ],
-        //             'expanded' => false,
-        //             'multiple' => false,
-        //         ]);
-        //     } else {
-        //         // Ajoutez d'autres options pour d'autres types de prospect si nécessaire
-        //     }
-        // });
-
-
-
-
-        $builder->get('team')->addEventListener(
-            FormEvents::POST_SUBMIT,
-            function (FormEvent $event) use ($formModifier) {
-                $team = $event->getForm()->getData();
-                $formModifier($event->getForm()->getParent(), $team);
-            }
-        );
 
         //pour reformater le numero nationnal
         $builder->addEventListener(
@@ -351,27 +276,30 @@ class ProspectType extends AbstractType
 
 
 
-        if ($options['editing']) {
-            $builder->remove('motifResil')
-                ->remove('assure')
-                ->remove('lastAssure')
-                ->remove('gsm')
-                ->remove('raisonSociale')
-                ->remove('typeProspect')
-                ->remove('source')
-                ->remove('brithAt')
-                ->remove('adress')
-                ->remove('city')
-                ->remove('gender')
-                ->remove('email')
-                ->remove('gender')
-                ->remove('phone')
-                ->remove('lastname')
-                ->remove('motifSaise')
-                ->remove('codePost')
-                // ->remove('comrcl')
-                ->remove('name');
-        }
+
+
+
+        // if ($options['editing']) {
+        //     $builder->remove('motifResil')
+        //         ->remove('assure')
+        //         ->remove('lastAssure')
+        //         ->remove('gsm')
+        //         ->remove('raisonSociale')
+        //         ->remove('typeProspect')
+        //         ->remove('source')
+        //         ->remove('brithAt')
+        //         ->remove('adress')
+        //         ->remove('city')
+        //         ->remove('gender')
+        //         ->remove('email')
+        //         ->remove('gender')
+        //         ->remove('phone')
+        //         ->remove('lastname')
+        //         ->remove('motifSaise')
+        //         ->remove('codePost')
+        //         // ->remove('comrcl')
+        //         ->remove('name');
+        // }
     }
 
     //     public function buildView(FormView $view, FormInterface $form, array $options)
@@ -406,7 +334,31 @@ class ProspectType extends AbstractType
             }
         }
     }
+    // private function getTeamsWithComrclsChoices()
+    // {
 
+
+    //     $teamsWithComrcls = $this->userRepository->findTeamsWithComrcls();
+    //     //dd($teamsWithComrcls);
+    //     $choices = [];
+    //     $choice_attr = [];
+    //     foreach ($teamsWithComrcls as $row) {
+    //         if (empty($row['teamId'])) {
+    //             continue;
+    //         }
+    //         $uniqueId = sprintf('%s-%s', $row['teamId'], $row['comrclId']);
+    //         $choices[$uniqueId] = $row['comrcl'];
+    //         $choice_attr[$uniqueId] = ['data-parent' => $row['teamId']];
+    //     }
+    //     //dd(['choices' => $choices, 'choice_attr' => $choice_attr]);
+    //     return ['choices' => $choices, 'choice_attr' => $choice_attr];
+    //     $choices = [];
+
+    //     foreach ($teamsWithComrcls as $data) {
+    //         $choices[sprintf('%s (%s)', $data['teamName'], $data['comrcls'])] = $data['teamName'];
+    //     }
+    //     return $choices;
+    // }
 
     // public function validateActivites($data, ExecutionContextInterface $context)
     // {

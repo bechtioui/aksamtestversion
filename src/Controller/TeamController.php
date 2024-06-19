@@ -3,17 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Team;
-use App\Entity\Product;
 use App\Form\TeamType;
+use App\Entity\Product;
 use App\Search\SearchTeam;
 use App\Form\SearchTeamType;
 use App\Repository\TeamRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,10 +28,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class TeamController extends AbstractController
 {
     private $entityManager;
+    private $requestStack;
+    private $teamRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(RequestStack $requestStack, EntityManagerInterface $entityManager, TeamRepository $teamRepository)
     {
         $this->entityManager = $entityManager;
+        $this->requestStack = $requestStack;
+        $this->teamRepository = $teamRepository;
     }
     /**
      * @Route("/", name="app_team_index", methods={"GET"})
@@ -71,6 +78,38 @@ class TeamController extends AbstractController
             'user' => $jsonData
         ]);
     }
+
+    /**
+     * return team and commercial with api
+     * @Route("/teams-api", name="teams_api", methods={"GET"})
+     */
+    public function testuserTesApi(TeamRepository $teamRepository): Response
+    {
+        // Récupérer toutes les équipes avec leurs commerciaux
+        $teams = $teamRepository->findAll();
+
+        // Préparer les données à retourner
+        $jsonData = [];
+        foreach ($teams as $team) {
+            $commercials = [];
+            foreach ($team->getUsers() as $commercial) {
+                $commercials[] = [
+                    'id' => $commercial->getId(),
+                    'username' => $commercial->getUsername(),
+                    // Ajoutez d'autres propriétés de l'utilisateur que vous souhaitez inclure
+                ];
+            }
+            $jsonData[] = [
+                'id' => $team->getId(),
+                'name' => $team->getName(),
+                'commercials' => $commercials,
+            ];
+        }
+
+        // Retourner les données au format JSON
+        return $this->json($jsonData, Response::HTTP_OK);
+    }
+
     /**
      * @Route("/new-team", name="team_new", methods={"GET", "POST"})
      */
@@ -116,7 +155,7 @@ class TeamController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($team->getUsers() as $user) {
-                $user->setTeams($team);
+                $user->addTeam($team);
             }
             $teamRepository->add($team, true);
             $this->addFlash('success', 'Equipe a été ajouté avec succès!');
@@ -149,7 +188,7 @@ class TeamController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($team->getUsers() as $user) {
-                $user->setTeams($team);
+                $user->addTeam($team);
             }
 
             $teamRepository->add($team, true);
