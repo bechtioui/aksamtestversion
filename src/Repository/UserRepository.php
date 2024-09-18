@@ -87,6 +87,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findSearchUser(SearchUser $search): PaginationInterface
     {
+
         $query = $this
             ->createQueryBuilder('u')
             ->select('u, t, f, p')
@@ -134,13 +135,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
 
-
-    public function findComrclByteamOrderedByAscName(Team $team): array
+    public function findComrclByteamOrderedByAscName(Team $team, User $user): array
     {
+        $teams = $user->getTeams();
+        if ($teams->isEmpty()) {
+            return [];
+        }
+
         return $this->createQueryBuilder('u')
+            ->where('p.team IN (:teams)')
             ->leftJoin('u.teams', 't')
             ->andWhere('t = :team')
-            ->setParameter('team', $team)
+            ->setParameter('teams', $teams)
             ->orderBy('u.username', 'ASC')
             ->getQuery()
             ->getResult();

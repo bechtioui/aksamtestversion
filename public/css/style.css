@@ -903,6 +903,7 @@ ul.top-menu>li>a:focus {
     margin-left: 60px;
     position: relative;
     border-bottom: 1px solid #c9cdd7;
+
 }
 
 .custom-bar-chart .bar {
@@ -937,6 +938,7 @@ ul.top-menu>li>a:focus {
     -ms-transition: all .3s ease;
     -o-transition: all .3s ease;
     transition: all .3s ease;
+    max-height: 390px !important;
 }
 
 

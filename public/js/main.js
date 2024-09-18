@@ -97,7 +97,7 @@ if ('Notification' in window && 'Worker' in window) {
     const worker = new Worker('/js/worker.js');
 
     // Pass the API URL to the worker
-    worker.postMessage({ apiUrl: '/prospect/newprospectApi' });
+    worker.postMessage({ apiUrl: '/prospect/newprospectTestApi' });
 
     // Listen for messages from the worker
     worker.onmessage = function (e) {

@@ -28,14 +28,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class TeamController extends AbstractController
 {
     private $entityManager;
-    private $requestStack;
-    private $teamRepository;
 
-    public function __construct(RequestStack $requestStack, EntityManagerInterface $entityManager, TeamRepository $teamRepository)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->requestStack = $requestStack;
-        $this->teamRepository = $teamRepository;
     }
     /**
      * @Route("/", name="app_team_index", methods={"GET"})

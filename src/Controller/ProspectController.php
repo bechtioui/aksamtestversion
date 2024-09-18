@@ -10,8 +10,11 @@ use App\Entity\Product;
 use App\Entity\Prospect;
 use App\Entity\Relanced;
 use App\Form\ClientType;
+use App\Entity\Relachoix;
 use App\Form\ProspectType;
 use App\Form\RelancedType;
+use App\Form\RelachoixType;
+use App\Entity\RelanceHistory;
 use App\Search\SearchProspect;
 use App\Form\ProspectAffectType;
 use App\Form\SearchProspectType;
@@ -113,6 +116,38 @@ class ProspectController extends AbstractController
             // cmrcl peut voire seulement les nouveaux prospects atacher a lui
             $prospect =  $prospectRepository->findByCmrclAffecter($data, $user, null);
         }
+
+        // Sérialiser les prospects
+        //$jsonData = $serializer->serialize($prospect, 'json');
+        $jsonData = $serializer->serialize($prospect, 'json', [
+            'attributes' => ['id', 'name']
+        ]);
+
+        return new JsonResponse($jsonData, 200, [], true);
+    }
+
+    /**
+     * Afficher les nouveaux prospects via API return Int
+     * @Route("/newprospectTestApi", name="newprospecttestApi_index", methods={"GET"}) 
+     */
+
+    public function newprospectTestApi(
+        ProspectRepository $prospectRepository,
+        Security $security,
+        SerializerInterface $serializer
+    ): JsonResponse {
+        $prospect = [];
+        $user = $security->getUser();
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true) || in_array('ROLE_ADMIN', $user->getRoles(), true) || in_array('ROLE_AFFECT', $user->getRoles(), true)) {
+            $prospect =  $prospectRepository->findAllNewProspectsApi(null);
+        } elseif (in_array('ROLE_TEAM', $user->getRoles(), true)) {
+            // chef peut voire toutes les nouveaux prospects atacher a leur equipe
+            $prospect =  $prospectRepository->findAllNewProspectsChefApi(null);
+        } else {
+            // cmrcl peut voire seulement les nouveaux prospects atacher a lui
+            $prospect =  $prospectRepository->findAllNewProspectsComercialApi(null);
+        }
+
 
         // Sérialiser les prospects
         $jsonData = $serializer->serialize($prospect, 'json');
@@ -250,6 +285,20 @@ class ProspectController extends AbstractController
             $this->addFlash('success', 'client ajoutée avec succès.');
         }
 
+        // $relachoix = new Relachoix();
+        // $relachoix->addProspectrelaced($prospect);
+
+        // $formchoix = $this->createForm(RelachoixType::class, $relachoix);
+        // $formchoix->handleRequest($request);
+
+        // if ($formchoix->isSubmitted() && $formchoix->isValid()) {
+
+        //     $this->entityManager->persist($relachoix);
+        //     $this->addFlash('success', 'relachoix ajoutée avec succès.');
+
+        //     // return $this->redirectToRoute('app_prospect_show', ['id' => $prospect->getId()]);
+        // }
+
         $relance = new Relanced();
         $relance->setProspect($prospect);
 
@@ -258,11 +307,34 @@ class ProspectController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            $this->entityManager->persist($relance);
-            $this->addFlash('success', 'Relance ajoutée avec succès.');
+            // Iterate over all existing relances for the prospect
+            foreach ($prospect->getRelanceds() as $oldRelance) {
+                // Create a new RelanceHistory instance for each old relance
+                $history = new RelanceHistory();
+                $history->setProspect($prospect);
+                $history->setMotifRelanced($oldRelance->getMotifRelanced());
 
-            // return $this->redirectToRoute('app_prospect_show', ['id' => $prospect->getId()]);
+                // Convert DateTime to DateTimeImmutable if needed
+                $relacedAt = $oldRelance->getRelacedAt();
+                $history->setRelacedAt($relacedAt instanceof \DateTimeImmutable ? $relacedAt : \DateTimeImmutable::createFromMutable($relacedAt));
+
+                $history->setComment($oldRelance->getComment());
+
+                // Persist the history
+                $this->entityManager->persist($history);
+
+                // Remove the old relance from the prospect and delete it
+                $prospect->removeRelanced($oldRelance);
+                $this->entityManager->remove($oldRelance);
+            }
+
+            // Add the new relance to the prospect
+            $prospect->addRelanced($relance);
+            $this->entityManager->persist($relance);
+
+            $this->addFlash('success', 'Relance ajoutée avec succès.');
         }
+
         $this->entityManager->flush();
 
         // $teamHistory = $this->getDoctrine()->getRepository(History::class)->findBy(['prospect' => $prospect]);
@@ -275,6 +347,7 @@ class ProspectController extends AbstractController
             'form' => $form->createView(),
             'clientForm' => $clientForm->createView(),
             'gsmForm' => $gsmForm->createView(),
+            // 'formchoix' => $formchoix->createView(),
             'ringoverData' => $data,
         ]);
     }

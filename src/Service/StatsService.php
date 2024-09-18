@@ -597,8 +597,8 @@ class StatsService
         $qb = $this->manager->createQueryBuilder();
         $qb->select('COUNT(DISTINCT p.id)')
             ->from(Prospect::class, 'p')
-            ->leftJoin('p.relanceds', 'r')
             ->where('p.team IN (:teams)')
+            ->leftJoin('p.relanceds', 'r')
             ->andWhere("r.motifRelanced = '2'")
             ->setParameter('teams', $teams);
 

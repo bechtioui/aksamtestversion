@@ -105,6 +105,11 @@ class Prospect
 
 
 
+    #[ORM\OneToMany(mappedBy: 'prospect', targetEntity: RelanceHistory::class)]
+    private Collection $relanceHistories;
+
+
+
 
 
     public function __construct()
@@ -113,6 +118,7 @@ class Prospect
 
         $this->relanceds = new ArrayCollection();
         $this->histories = new ArrayCollection();
+        $this->relanceHistories = new ArrayCollection();
     }
 
     /**
@@ -487,6 +493,36 @@ class Prospect
     public function setUrl(?string $url): static
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RelanceHistory>
+     */
+    public function getRelanceHistories(): Collection
+    {
+        return $this->relanceHistories;
+    }
+
+    public function addRelanceHistory(RelanceHistory $relanceHistory): static
+    {
+        if (!$this->relanceHistories->contains($relanceHistory)) {
+            $this->relanceHistories->add($relanceHistory);
+            $relanceHistory->setProspect($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRelanceHistory(RelanceHistory $relanceHistory): static
+    {
+        if ($this->relanceHistories->removeElement($relanceHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($relanceHistory->getProspect() === $this) {
+                $relanceHistory->setProspect(null);
+            }
+        }
 
         return $this;
     }

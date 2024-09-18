@@ -80,7 +80,7 @@
 								</div>
 							{% endif %}
 							<!-- AJOUTER PROSPECT -->
-							{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_TEAM') == true  or is_granted('ROLE_ADD_PROS') == true  %}
+							{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_TEAM') == true or is_granted('ROLE_AFFECT') == true  or is_granted('ROLE_ADD_PROS') == true  %}
 								<div
 									class="col-md-3 col-sm-3 mb">
 									<!-- REVENUE PANEL -->
@@ -117,10 +117,10 @@
 									</div>
 								</div>
 							</div>
+							<!-- RELANCES DU JOUR -->
 							{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_TEAM') == true   or is_granted('ROLE_COMERC') == true and not is_granted('ROLE_AFFECT') == true   %}
-								<div
-									class="col-md-12">
-									<!-- RELANCES DU JOUR -->
+								<div class="col-md-12">
+
 									<div class="col-md-3 col-sm-3 mb">
 
 
@@ -208,7 +208,6 @@
 													<h1>{{ " %02d"|format(stats.unjoiniableCmrl ) }}</h1>
 												{% endif %}
 											</a>
-
 										</div>
 									</div>
 								</div>
