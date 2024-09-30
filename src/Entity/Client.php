@@ -54,6 +54,9 @@ class Client
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?Prospect $prospect = null;
 
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $isValid = null;
+
 
     /**
      * Permet de mettre en place la date de création
@@ -196,6 +199,18 @@ class Client
     public function setProspect(?Prospect $prospect): static
     {
         $this->prospect = $prospect;
+
+        return $this;
+    }
+
+    public function getIsValid(): ?int
+    {
+        return $this->isValid;
+    }
+
+    public function setIsValid(?int $isValid): static
+    {
+        $this->isValid = $isValid;
 
         return $this;
     }
